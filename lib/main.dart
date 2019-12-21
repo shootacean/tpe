@@ -6,7 +6,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Theree Point Estimate',
+      title: 'Three Point Estimate',
       theme: ThemeData(
         primaryColor: Colors.lightBlue,
       ),
