@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:english_words/english_words.dart';
 
 void main() => runApp(MyApp());
 
@@ -7,101 +6,124 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Startup Name GEnerator',
+      title: 'Theree Point Estimate',
       theme: ThemeData(
-        primaryColor: Colors.orange,
+        primaryColor: Colors.lightBlue,
       ),
-      home: RandomWords(),
+      home: ThreePointEstimatePage(),
     );
   }
 }
 
-class RandomWords extends StatefulWidget {
+class ThreePointEstimatePage extends StatefulWidget {
   @override
-  RandomWordsState createState() => RandomWordsState();
+  State<StatefulWidget> createState() => _ThreePointEstimateState();
 }
 
-class RandomWordsState extends State<RandomWords> {
-  final List<WordPair> _suggestions = <WordPair>[];
-  final Set<WordPair> _saved = Set<WordPair>();
-  final TextStyle _biggerFont = const TextStyle(fontSize: 18.0);
+class _ThreePointEstimateData {
+  int standard = 0;
+  int pessimistic = 0;
+  int optimistic = 0;
+}
 
+class _ThreePointEstimateState extends State<ThreePointEstimatePage> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  _ThreePointEstimateData _data = _ThreePointEstimateData();
+
+  String _answer = '';
+  final TextEditingController _answerController =
+      TextEditingController(text: '');
+
+  void initState() {
+    super.initState();
+
+    _answerController.addListener(() {
+      setState(() {
+        _answer = _answerController.text;
+      });
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final Size screenSize = MediaQuery.of(context).size;
+
     return Scaffold(
-        appBar: AppBar(
-            title: Text('Startup Name Generator'),
-            actions: <Widget>[
-              IconButton(icon: Icon(Icons.list), onPressed: _pushSaved),
-            ]
-        ),
-        body: _buildSuggestions());
-  }
-
-  Widget _buildSuggestions() {
-    return ListView.builder(
-        padding: const EdgeInsets.all(16.0),
-        itemBuilder: (context, i) {
-          if (i.isOdd) return Divider();
-
-          final index = i ~/ 2;
-          if (index >= _suggestions.length) {
-            _suggestions.addAll(generateWordPairs().take(10));
-          }
-          return _buildRow(_suggestions[index]);
-        });
-  }
-
-  Widget _buildRow(WordPair pair) {
-    final bool alreadySaved = _saved.contains(pair);
-    return ListTile(
-      title: Text(
-        pair.asPascalCase,
-        style: _biggerFont,
+      appBar: AppBar(
+        title: Text('Three Point Estimate'),
       ),
-      trailing: Icon(
-        alreadySaved ? Icons.favorite : Icons.favorite_border,
-        color: alreadySaved ? Colors.red : null,
-      ),
-      onTap: () {
-        setState(() {
-          if (alreadySaved) {
-            _saved.remove(pair);
-          } else {
-            _saved.add(pair);
-          }
-        });
-      },
-    );
-  }
-
-  void _pushSaved() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (BuildContext context) {
-          final Iterable<ListTile> tiles = _saved.map(
-                (WordPair pair) {
-              return ListTile(
-                title: Text(
-                  pair.asPascalCase,
-                  style: _biggerFont,
-                ),
-              );
-            },
-          );
-          final List<Widget> divided = ListTile
-              .divideTiles(
-            context: context,
-            tiles: tiles,
-          )
-              .toList();
-          return Scaffold(
-              appBar: AppBar(
-                title: Text('Saved Suggstions'),
+      body: Container(
+        padding: EdgeInsets.all(20.0),
+        child: Form(
+          key: this._formKey,
+          child: ListView(
+            children: <Widget>[
+              TextFormField(
+                keyboardType: TextInputType.numberWithOptions(),
+                decoration:
+                    InputDecoration(hintText: '8', labelText: 'Standard'),
+                onSaved: (String value) {
+                  try {
+                    this._data.standard = int.parse(value);
+                  } catch (exception) {
+                    this._data.standard = 0;
+                  }
+                },
               ),
-              body: ListView(children: divided)
-          );
-        },
+              TextFormField(
+                keyboardType: TextInputType.numberWithOptions(),
+                decoration:
+                    InputDecoration(hintText: '24', labelText: 'Pessimistic'),
+                onSaved: (String value) {
+                  try {
+                    this._data.pessimistic = int.parse(value);
+                  } catch (exception) {
+                    this._data.pessimistic = 0;
+                  }
+                },
+              ),
+              TextFormField(
+                keyboardType: TextInputType.numberWithOptions(),
+                decoration:
+                    InputDecoration(hintText: '3', labelText: 'Optimistic'),
+                onSaved: (String value) {
+                  try {
+                    this._data.optimistic = int.parse(value);
+                  } catch (exception) {
+                    this._data.optimistic = 0;
+                  }
+                },
+              ),
+              Container(
+                margin: EdgeInsets.only(top: 20.0),
+                width: screenSize.width,
+                child: RaisedButton(
+                  child: Text('Calc',
+                      style: TextStyle(
+                        color: Colors.white,
+                      )),
+                  onPressed: this.calc,
+                  color: Colors.blue,
+                ),
+              ),
+              Container(
+                child: TextField(
+                  readOnly: true,
+                  controller: _answerController,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
+  }
+
+  void calc() {
+    _formKey.currentState.save();
+    final double answer =
+        ((_data.standard * 4) + _data.pessimistic + _data.optimistic) / 6;
+    _answerController.text = answer.toString();
   }
 }
